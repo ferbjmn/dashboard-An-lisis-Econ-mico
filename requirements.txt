@@ -1,0 +1,7 @@
+streamlit==1.32.0
+pandas==2.1.4
+numpy==1.26.3
+plotly==5.18.0
+requests==2.31.0
+imfpy==0.1.2  # (Opcional) Para conexión directa con API del FMI
+python-dotenv==1.0.0  # (Opcional) Para manejar variables de entorno
