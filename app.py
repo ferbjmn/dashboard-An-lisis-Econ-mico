@@ -98,23 +98,6 @@ def crear_grafico_comparativo(df, titulo, tipo, unidad, show_table=True):
         with st.expander("Ver datos tabulares"):
             st.dataframe(df.pivot(index="Año", columns="País", values="Valor"))
 
-def crear_grafico_individual(df, titulo, tipo, unidad):
-    if df.empty:
-        st.warning(f"No hay datos disponibles para {titulo}")
-        return
-    
-    if tipo == "line":
-        fig = px.line(df, x="Año", y="Valor", title=f"{titulo} ({unidad})", markers=True)
-    else:
-        fig = px.bar(df, x="Año", y="Valor", title=f"{titulo} ({unidad})")
-    
-    fig.update_layout(
-        hovermode="x unified",
-        xaxis_title="Año",
-        yaxis_title=unidad
-    )
-    st.plotly_chart(fig, use_container_width=True)
-
 # ======================================
 # 3. Interfaz de Usuario
 # ======================================
@@ -143,34 +126,32 @@ with st.sidebar:
 # 4. Visualización de Todos los Gráficos
 # ======================================
 
-# Gráfico 1: PIB y PIB per cápita
-st.header("📈 1. Indicadores de PIB")
-tab1, tab2 = st.tabs(["PIB Total", "PIB per cápita"])
+# Gráfico 1: PIB
+st.header("📈 1. Producto Interno Bruto (PIB)")
+datos_pib = []
+for pais in paises_seleccionados:
+    df = obtener_datos_fmi(PAISES[pais]["iso2"], "NGDP_R", año_inicio, año_fin)
+    if not df.empty:
+        df["País"] = PAISES[pais]["nombre"]
+        datos_pib.append(df)
 
-with tab1:
-    datos_pib = []
-    for pais in paises_seleccionados:
-        df = obtener_datos_fmi(PAISES[pais]["iso2"], "NGDP_R", año_inicio, año_fin)
-        if not df.empty:
-            df["País"] = PAISES[pais]["nombre"]
-            datos_pib.append(df)
-    
-    if datos_pib:
-        crear_grafico_comparativo(pd.concat(datos_pib), "Evolución del PIB", "bar", "USD")
+if datos_pib:
+    crear_grafico_comparativo(pd.concat(datos_pib), "Evolución del PIB", "bar", "USD")
 
-with tab2:
-    datos_pib_per_capita = []
-    for pais in paises_seleccionados:
-        df = obtener_datos_fmi(PAISES[pais]["iso2"], "NGDPDPC", año_inicio, año_fin)
-        if not df.empty:
-            df["País"] = PAISES[pais]["nombre"]
-            datos_pib_per_capita.append(df)
-    
-    if datos_pib_per_capita:
-        crear_grafico_comparativo(pd.concat(datos_pib_per_capita), "PIB per cápita", "bar", "USD")
+# Gráfico 2: PIB per cápita
+st.header("📊 2. PIB per cápita")
+datos_pib_per_capita = []
+for pais in paises_seleccionados:
+    df = obtener_datos_fmi(PAISES[pais]["iso2"], "NGDPDPC", año_inicio, año_fin)
+    if not df.empty:
+        df["País"] = PAISES[pais]["nombre"]
+        datos_pib_per_capita.append(df)
 
-# Gráfico 2: Inflación
-st.header("📉 2. Inflación Anual")
+if datos_pib_per_capita:
+    crear_grafico_comparativo(pd.concat(datos_pib_per_capita), "PIB per cápita", "bar", "USD")
+
+# Gráfico 3: Inflación
+st.header("📉 3. Inflación Anual")
 datos_inflacion = []
 for pais in paises_seleccionados:
     df = obtener_datos_fmi(PAISES[pais]["iso2"], "PCPI", año_inicio, año_fin)
@@ -181,8 +162,8 @@ for pais in paises_seleccionados:
 if datos_inflacion:
     crear_grafico_comparativo(pd.concat(datos_inflacion), "Tasa de Inflación", "line", "%")
 
-# Gráfico 3: Balanza Comercial (Último año disponible)
-st.header("🔄 3. Balanza Comercial (Último Año)")
+# Gráfico 4: Balanza Comercial (Último año disponible)
+st.header("🔄 4. Balanza Comercial (Último Año)")
 if paises_seleccionados:
     año_actual = año_fin
     datos_balanza = []
@@ -205,8 +186,8 @@ if paises_seleccionados:
                      title=f"Balanza Comercial ({año_actual})")
         st.plotly_chart(fig, use_container_width=True)
 
-# Gráfico 4: Cuenta Corriente
-st.header("💳 4. Cuenta Corriente (% PIB)")
+# Gráfico 5: Cuenta Corriente
+st.header("💳 5. Cuenta Corriente (% PIB)")
 datos_cuenta = []
 for pais in paises_seleccionados:
     df = obtener_datos_fmi(PAISES[pais]["iso2"], "BCA", año_inicio, año_fin)
@@ -217,8 +198,8 @@ for pais in paises_seleccionados:
 if datos_cuenta:
     crear_grafico_comparativo(pd.concat(datos_cuenta), "Cuenta Corriente", "line", "% PIB")
 
-# Gráfico 5: Reservas Internacionales
-st.header("💰 5. Reservas Internacionales")
+# Gráfico 6: Reservas Internacionales
+st.header("💰 6. Reservas Internacionales")
 datos_reservas = []
 for pais in paises_seleccionados:
     df = obtener_datos_fmi(PAISES[pais]["iso2"], "RAXG", año_inicio, año_fin)
@@ -229,8 +210,8 @@ for pais in paises_seleccionados:
 if datos_reservas:
     crear_grafico_comparativo(pd.concat(datos_reservas), "Reservas Internacionales", "bar", "USD")
 
-# Gráfico 6: Tasas de Interés
-st.header("📊 6. Tasas de Interés de Política Monetaria")
+# Gráfico 7: Tasas de Interés
+st.header("📊 7. Tasas de Interés de Política Monetaria")
 datos_tasas = []
 for pais in paises_seleccionados:
     df = obtener_datos_fmi(PAISES[pais]["iso2"], "FPOLM_PA", año_inicio, año_fin)
@@ -241,8 +222,8 @@ for pais in paises_seleccionados:
 if datos_tasas:
     crear_grafico_comparativo(pd.concat(datos_tasas), "Tasas de Interés", "line", "%")
 
-# Gráfico 7: Deuda Pública
-st.header("🏛️ 7. Deuda Pública (% PIB)")
+# Gráfico 8: Deuda Pública
+st.header("🏛️ 8. Deuda Pública (% PIB)")
 datos_deuda = []
 for pais in paises_seleccionados:
     df = obtener_datos_fmi(PAISES[pais]["iso2"], "GGXWDG", año_inicio, año_fin)
@@ -253,8 +234,8 @@ for pais in paises_seleccionados:
 if datos_deuda:
     crear_grafico_comparativo(pd.concat(datos_deuda), "Deuda Pública", "bar", "% PIB")
 
-# Gráfico 8: Déficit Fiscal
-st.header("📉 8. Déficit Fiscal (% PIB)")
+# Gráfico 9: Déficit Fiscal
+st.header("📉 9. Déficit Fiscal (% PIB)")
 datos_deficit = []
 for pais in paises_seleccionados:
     df = obtener_datos_fmi(PAISES[pais]["iso2"], "GGXONLB", año_inicio, año_fin)
@@ -265,8 +246,8 @@ for pais in paises_seleccionados:
 if datos_deficit:
     crear_grafico_comparativo(pd.concat(datos_deficit), "Déficit Fiscal", "bar", "% PIB")
 
-# Gráfico 9: Gasto Público
-st.header("🏦 9. Gasto Público (% PIB)")
+# Gráfico 10: Gasto Público
+st.header("🏦 10. Gasto Público (% PIB)")
 datos_gasto = []
 for pais in paises_seleccionados:
     df = obtener_datos_fmi(PAISES[pais]["iso2"], "GGX", año_inicio, año_fin)
@@ -277,8 +258,8 @@ for pais in paises_seleccionados:
 if datos_gasto:
     crear_grafico_comparativo(pd.concat(datos_gasto), "Gasto Público", "bar", "% PIB")
 
-# Gráfico 10: Desempleo
-st.header("🧑‍💼 10. Tasa de Desempleo (%)")
+# Gráfico 11: Desempleo
+st.header("🧑‍💼 11. Tasa de Desempleo (%)")
 datos_desempleo = []
 for pais in paises_seleccionados:
     df = obtener_datos_fmi(PAISES[pais]["iso2"], "LUR", año_inicio, año_fin)
@@ -289,8 +270,8 @@ for pais in paises_seleccionados:
 if datos_desempleo:
     crear_grafico_comparativo(pd.concat(datos_desempleo), "Tasa de Desempleo", "bar", "%")
 
-# Gráfico 11: Inversión Extranjera Directa
-st.header("🌐 11. Inversión Extranjera Directa (USD)")
+# Gráfico 12: Inversión Extranjera Directa
+st.header("🌐 12. Inversión Extranjera Directa (USD)")
 datos_ied = []
 for pais in paises_seleccionados:
     df = obtener_datos_fmi(PAISES[pais]["iso2"], "FDI", año_inicio, año_fin)
